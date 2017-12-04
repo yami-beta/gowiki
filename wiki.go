@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
@@ -35,6 +36,10 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func convertNewline(str string) string {
+	return strings.Replace(str, "\r\n", "\n", -1)
 }
 
 func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -76,7 +81,8 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
-	p := &Page{Title: title, Body: []byte(body)}
+	str := convertNewline(body)
+	p := &Page{Title: title, Body: []byte(str)}
 	err := p.save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
